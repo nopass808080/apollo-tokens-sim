@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apollo Tokens Simulator v0.9.2</title>
+    <title>Apollo Tokens Simulator v0.9.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0"></script>
@@ -27,7 +27,8 @@
 <body class="bg-stone-950 text-stone-100 min-h-screen p-4 pb-10 font-sans tracking-wide">
 
     <div class="max-w-md mx-auto bg-stone-900 rounded-xl shadow-2xl overflow-hidden p-6 border border-stone-800">
-        <h1 class="text-2xl font-military text-center mb-6 text-amber-500 tracking-[0.2em] uppercase drop-shadow-[0_0_4px_rgba(245,158,11,0.2)]">Apollo Tokens Simulator</h1>
+        <h1 class="text-2xl font-military text-center mb-1 text-amber-500 tracking-[0.2em] uppercase drop-shadow-[0_0_4px_rgba(245,158,11,0.2)]">Apollo Tokens Simulator</h1>
+        <p id="tz-note" class="text-center text-[10px] text-stone-400 mb-6 tracking-wide"></p>
         <div class="mb-6 p-4 bg-amber-500/5 border border-amber-500/20 rounded-lg">
             <label class="block text-xs font-bold text-amber-400 uppercase mb-2 tracking-widest">Current Tokens</label>
             <input type="number" id="input-current-tokens" 
@@ -112,6 +113,20 @@ function getLocalTargetDateStr(date) {
     return `${y}-${m}-${d}`;
 }
 
+function getTimezoneLabel() {
+    const offsetMin = -new Date().getTimezoneOffset(); // Positive if ahead of UTC
+    const sign = offsetMin >= 0 ? '+' : '-';
+    const abs = Math.abs(offsetMin);
+    const hh = Math.floor(abs / 60);
+    const mm = abs % 60;
+    const offsetStr = mm === 0 ? `UTC${sign}${hh}` : `UTC${sign}${hh}:${String(mm).padStart(2, '0')}`;
+    let tzName = '';
+    try {
+        tzName = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch (e) { /* Ignore if unavailable */ }
+    return tzName ? `${offsetStr} (${tzName})` : offsetStr;
+}
+
 let TODAY_STR = getLocalTargetDateStr(new Date());
 
 let chart = null;
@@ -120,10 +135,10 @@ const selectedGlobal = new Set();
 
 const globalEvents = [
     { id: 'daily', name: "Daily Bounties", tokens: 60, start: null, end: null },
-    { id: 'ge1', name: "Operation Red Codex", tokens: 2500, start: "2026-07-01T18:00:00", end: "2026-07-31T18:00:00" },
-    { id: 'ge2', name: "(Dispatch Op)", tokens: 2500, start: "2026-07-31T18:00:00", end: "2026-08-31T18:00:00" },
-    { id: 'ge3', name: "Global Op", tokens: 10000, start: "2026-08-26T18:00:00", end: "2026-09-16T18:00:00", isSeason: true },
-    { id: 'ge4', name: "Autumn Equinox 2026", tokens: 2500, start: "2026-09-01T18:00:00", end: "2026-09-30T18:00:00" },
+    { id: 'ge1', name: "Operation Red Codex", tokens: 2500, start: "2026-07-01T18:00:00Z", end: "2026-07-31T18:00:00Z" },
+    { id: 'ge2', name: "(Dispatch Op)", tokens: 2500, start: "2026-07-31T18:00:00Z", end: "2026-08-31T18:00:00Z" },
+    { id: 'ge3', name: "Global Op", tokens: 10000, start: "2026-08-26T18:00:00Z", end: "2026-09-16T18:00:00Z", isSeason: true },
+    { id: 'ge4', name: "Autumn Equinox 2026", tokens: 2500, start: "2026-09-01T18:00:00Z", end: "2026-09-30T18:00:00Z" },
 ];
 
 const onsiteEvents = [
@@ -144,11 +159,11 @@ const MEDALS = [
 function parseEventDate(dateStr) {
     if (!dateStr) return null;
     if (dateStr.endsWith('Z')) {
-        // UTC → ローカル変換（タイムゾーンがマイナスの地域も含め Date が正しく処理）
+        // UTC → local conversion (Date handles this correctly, including regions with negative offsets)
         return new Date(dateStr);
     }
-    // 非Z: "YYYY-MM-DDTHH:MM:SS" をローカル時刻として解釈
-    // ハイフンをスラッシュに置換することでブラウザ間の UTC 誤解釈を防ぐ
+    // Non-Z: interpret "YYYY-MM-DDTHH:MM:SS" as local time
+    // Replacing hyphens with slashes prevents browsers from misinterpreting it as UTC
     return new Date(dateStr.replace(/-/g, '/').replace('T', ' '));
 }
 
@@ -158,9 +173,9 @@ function getLocalDateStrFromEvent(ev) {
     return getLocalTargetDateStr(d);
 }
 
-// --- 変更点1: generatePeriodText の上限をロジック（9/18）と完全に一致させる ---
+// --- Change 1: Align generatePeriodText's upper bound exactly with the logic (9/18) ---
 function generatePeriodText(ev) {
-    if (!ev.start) return "1 Jul – 18 Sep"; // 表記を分かりやすく
+    if (!ev.start) return "1 Jul – 18 Sep"; // Make the label clearer
     
     const startDate = parseEventDate(ev.start);
     const startText = `${startDate.getDate()} ${monthNames[startDate.getMonth()]}`;
@@ -168,13 +183,14 @@ function generatePeriodText(ev) {
     if (!ev.end) return startText;
 
     const endDate = parseEventDate(ev.end);
-    const endText = `${endDate.getDate()} ${monthNames[endDate.getMonth()]}`;
+    const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+    const endText = `${endDate.getDate()} ${monthNames[endDate.getMonth()]} ${endTime}`;
     return `${startText} – ${endText}`;
 }
 
 
 function isGlobalPast(ev) {
-    // Daily Bounty は end なしの日課なので isGlobalPast の対象外（isDailyEnded で別管理）
+    // Daily Bounty is a recurring task with no end date, so it's excluded from isGlobalPast (handled separately via isDailyEnded)
     if (!ev.start) return false;
     return getLocalDateStrFromEvent(ev) < TODAY_STR;
 }
@@ -189,6 +205,9 @@ function datePartToSafeStr(dateStr) {
 }
 
 function init() {
+    const tzNoteEl = document.getElementById('tz-note');
+    if (tzNoteEl) tzNoteEl.textContent = `⏱ All times shown in your local timezone (${getTimezoneLabel()})`;
+
     Object.keys(localStorage).forEach(key => {
         if (key.startsWith('apollo_simulator_') && key !== STORAGE_KEY) localStorage.removeItem(key);
     });
@@ -269,20 +288,20 @@ function renderGlobalEvents() {
         const isPast = isGlobalPast(ev);
         const isSelected = selectedGlobal.has(ev.id);
         
-        // 【追加】Daily Bountyが終了日（2026-09-18）を過ぎているかどうかの判定
+        // [Added] Check whether Daily Bounty has passed its end date (2026-09-18)
         const isDailyEnded = (ev.id === 'daily' && TODAY_STR > "2026-09-18");
         
-        // 過去のイベント、またはDaily Bounty終了後は非アクティブ（グレーアウトなど）にする
+        // Mark past events, or Daily Bounty after it has ended, as inactive (e.g. greyed out)
         const isInactive = isPast || isDailyEnded;
 
         const seasonClasses = (ev.isSeason && !isInactive) ? 'season-border' : '';
         const periodDisplay = generatePeriodText(ev);
 
         const label = document.createElement('label');
-        // isInactive の場合は hover 効果を消し、クリック感（active:scale-95）も無効化、カーソルを default に
+        // When isInactive, remove the hover effect, disable the click feedback (active:scale-95), and set the cursor to default
         label.className = `flex items-center justify-between p-3 border rounded-lg transition ${seasonClasses} ${isInactive ? 'bg-stone-900/40 border-stone-800 opacity-40 cursor-default' : 'bg-stone-800/40 border-stone-700/60 hover:border-yellow-600/40 active:scale-95'}`;
         
-        // 状況に応じたテキストバッジの定義
+        // Define the text badge based on the situation
         let statusBadge = '';
         if (isPast) statusBadge = ' <span class="text-stone-500">(Counted)</span>';
         else if (isDailyEnded) statusBadge = ' <span class="text-amber-600 font-bold ml-1">[Ended]</span>';
@@ -336,9 +355,9 @@ function update() {
     const includedOnsite = [];
 
 let iter = new Date(START_DATE.getTime()); // 2026-07-01
-    const dailyEnd = new Date(END_DATE.getTime()); // 2026-10-01 (全体の終了)
+    const dailyEnd = new Date(END_DATE.getTime()); // 2026-10-01 (overall end)
 
-    // 【追加】Daily Bountiesの本来の終了日（2026-09-18）
+    // [Added] The actual end date of Daily Bounties (2026-09-18)
     const DAILY_BOUNTY_LIMIT_STR = "2026-09-18";
 
     const tomorrow = new Date();
@@ -350,8 +369,8 @@ let iter = new Date(START_DATE.getTime()); // 2026-07-01
         const isFirstIteration = (dateStr === TODAY_STR);
 
         if (dateStr >= TODAY_STR) {
-            // 1. Daily Bounties の計算ロジック
-            // 「明日以降」かつ「2026-09-18まで」の間だけ 60 トークンを加算する
+            // 1. Daily Bounties calculation logic
+            // Add 60 tokens only between "tomorrow onward" and "up to 2026-09-18"
             if (selectedGlobal.has('daily') && dateStr >= tomorrowStr && dateStr <= DAILY_BOUNTY_LIMIT_STR) {
                 running += 60;
                 dailyBountyTotal += 60;
@@ -403,13 +422,13 @@ let iter = new Date(START_DATE.getTime()); // 2026-07-01
         if (achievementDates[m.id] !== '-') {
             dateEl.innerText = achievementDates[m.id];
             dateEl.className = `text-sm font-bold ${m.textClass} drop-shadow-sm`;
-            // Gold かつ Daily Bounties のチェックが入っている場合のみ Buffer を計算
+            // Calculate the buffer only when Gold is reached and Daily Bounties is checked
             if (m.id === 'gold' && selectedGlobal.has('daily')) {
                 const skipDays = Math.max(0, Math.floor((running - m.threshold) / 60));
                 remEl.innerText = `Skip Daily: ${skipDays} days`;
                 remEl.className = `text-[9px] font-bold ${m.textClass} mt-1 opacity-90`;
             } else {
-                // Daily Bounties がオフの時、および Silver / Bronze はこちら
+                // This applies when Daily Bounties is off, and also for Silver / Bronze
                 remEl.innerText = "Target Met";
                 remEl.className = `text-[10px] font-bold ${m.textClass} mt-1 opacity-90`;
             }
@@ -487,12 +506,12 @@ function renderChart(timeline, max) {
                         maxTicksLimit: 6,
                         maxRotation: 45,
                         minRotation: 45,
-                        // --- 変更点2: 安全にラベルを取得・表示するロジックに変更 ---
+                        // --- Change 2: Switch to logic that safely retrieves and displays the label ---
                         callback: function(value) {
                             const label = this.getLabelForValue(value);
                             if (!label) return null;
                             const day = parseInt(label.split('-')[2], 10);
-                            // 1日と15日のタイミングだけカスタムフォーマットで返す
+                            // Return the custom format only for the 1st and 15th
                             return (day === 1 || day === 15) ? formatDate(label) : null;
                         },
                         color: '#a8a29e',
