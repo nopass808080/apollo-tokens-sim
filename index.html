@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apollo Tokens Simulator v0.9.1</title>
+    <title>Apollo Tokens Simulator v0.9.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0"></script>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
     <style>
-        .font-military { font-family: 'Share Tech Mono', monospace; }
+        .font-military { font-family: 'Teko', sans-serif; }
         .platinum { background-color: #e5e4e2; color: #333; }
         .gold { background-color: #ffbf00; color: #333; }
         .silver { background-color: #c0c0c0; color: #333; }
@@ -26,7 +28,6 @@
 
     <div class="max-w-md mx-auto bg-stone-900 rounded-xl shadow-2xl overflow-hidden p-6 border border-stone-800">
         <h1 class="text-2xl font-military text-center mb-6 text-amber-500 tracking-[0.2em] uppercase drop-shadow-[0_0_4px_rgba(245,158,11,0.2)]">Apollo Tokens Simulator</h1>
-
         <div class="mb-6 p-4 bg-amber-500/5 border border-amber-500/20 rounded-lg">
             <label class="block text-xs font-bold text-amber-400 uppercase mb-2 tracking-widest">Current Tokens</label>
             <input type="number" id="input-current-tokens" 
