@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apollo Tokens Simulator v0.9.3</title>
+    <title>Apollo Tokens Simulator v0.9.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0"></script>
@@ -175,7 +175,7 @@ function getLocalDateStrFromEvent(ev) {
 
 // --- Change 1: Align generatePeriodText's upper bound exactly with the logic (9/18) ---
 function generatePeriodText(ev) {
-    if (!ev.start) return "1 Jul – 18 Sep"; // Make the label clearer
+    if (!ev.start) return "1 Jul – 18 Sep 23:59"; // Make the label clearer
     
     const startDate = parseEventDate(ev.start);
     const startText = `${startDate.getDate()} ${monthNames[startDate.getMonth()]}`;
