@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apollo Tokens Simulator v0.9.5</title>
+    <title>Apollo Tokens Simulator v0.9.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0"></script>
@@ -136,14 +136,14 @@ const selectedGlobal = new Set();
 const globalEvents = [
     { id: 'daily', name: "Daily Bounties", tokens: 60, start: null, end: null },
     { id: 'ge1', name: "Red Codex", tokens: 2500, start: "2026-07-01T18:00:00Z", end: "2026-07-31T18:00:00Z" },
-    { id: 'ge5', name: "(Dispatch Op)", tokens: 2500, start: "2026-07-15T18:00:00Z", end: "2026-08-14T18:00:00Z" },    
+    { id: 'ge5', name: "Moonlit Paths", tokens: 2500, start: "2026-07-15T18:00:00Z", end: "2026-08-14T18:00:00Z" },    
     { id: 'ge2', name: "(Dispatch Op)", tokens: 2500, start: "2026-07-31T18:00:00Z", end: "2026-08-31T18:00:00Z" },
     { id: 'ge3', name: "Global Op", tokens: 10000, start: "2026-08-26T18:00:00Z", end: "2026-09-16T18:00:00Z", isSeason: true },
     { id: 'ge4', name: "Autumn Equinox 2026", tokens: 2500, start: "2026-09-01T18:00:00Z", end: "2026-09-30T18:00:00Z" },
 ];
 
 const onsiteEvents = [
-    { id: 'fs7', name: "First Saturday: Jul", tokens: 2500, start: "2026-07-04T00:00:00Z", end: null, delay: 0, isSeason: true },
+    { id: 'fs7', name: "First Saturday: Jul", tokens: 2500, start: "2026-07-04T00:00:00Z", end: null, delay: 15, isSeason: true },
     { id: 'ae1', name: "Anomaly Day1: Helsinki / Bogotá", tokens: 5000, start: "2026-07-18T12:00:00Z", end: null, delay: 0, isSeason: true },
     { id: 'fs8', name: "First Saturday: Aug", tokens: 2500, start: "2026-08-01T00:00:00Z", end: null, delay: 0, isSeason: true },
     { id: 'ae2', name: "Anomaly Day2: Seoul / Paris", tokens: 5000, start: "2026-08-22T12:00:00Z", end: null, delay: 0, isSeason: true },
